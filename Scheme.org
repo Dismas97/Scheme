@@ -1,0 +1,181 @@
+#+TITLE: Scheme SICP
+#+AUTHOR: fran
+#+DESCRIPTION: Pasando a limpio lo que aprendi de distintas fuentes sobre SCHEME
+#+PROPERTY: header-args :lang scheme
+#+BIBLIOGRAPHY: Hal Abelson, Gerald Jay Sussman - Structure and Interpretation of Computer Programs.
+
+* TABLA DE CONTENIDOS :toc:
+- [[#construyendo-abstracciones-con-procedimientos][Construyendo Abstracciones con Procedimientos]]
+  - [[#elementos-de-la-programacion][Elementos de la programacion]]
+
+* Construyendo Abstracciones con Procedimientos
+** Elementos de la programacion
+*Expresiones Primitivas:* las entidades mas simples que maneja el lenguaje, int, float, etc.
+
+*Metodos de Combinacion:* elementos complejos son construidos a partir de elementos mas simples.
+
+*Metodos de Abstraccion:* elementos complejos pueden ser nombrados y tratados como unidades.
+
+*** Expresiones
+Scheme (como todo dialecto lisp), utiliza notacion polaca, expresiones primitivas como suma, numeros, etc. se pueden combinar para formar *Combinaciones*, estas estan formadas por una *lista de expresiones*, el elemento mas a la izquierda es el *Operador*, el resto de elementos son sus *Operandos*, cada operando puede ser a su vez otra combinacion permitiendo a las combinaciones estar *Anidadas*, en principio no hay limite de la profundidad del anidamiento:
+
+#+begin_src scheme
+                                          ; Expresiones primitivas
+  1
+  5
+                                          ; Expresiones combinadas
+  (+ 5 1)
+  (* 5 4 3 2)
+                                          ; Expresiones anidadas
+  (+ (* 3
+        (+ 100 50))
+     (* 1 1)
+     (* 1 1))
+#+end_src
+
+Para la definicion de *Variables*, la funcion /define/ nos permite nombrar algo en el *entorno global*, se puede definir en distintos entornos.
+*** TODO Agregar otras definiciones de variables en diferentes entornos
+#+begin_src scheme
+  (define variable "Hola mundo")
+  variable
+#+end_src
+
+#+RESULTS:
+: Hola mundo
+
+Notar que (define x y) no es una combinacion, ya que no aplica el operador a sus operandos, sino que los asocia, dichas excepciones son llamadas *Formas Especiales*. Cada forma especial tiene su propia regla de evaluacion.
+
+*** Procedimientos Compuestos
+Para definir procedimientos en Scheme, de nuevo utilizamos /define/. Ej potencia 2:
+
+#+begin_src scheme
+  (define (cuadrado x) (* x x))
+  (cuadrado 4)
+#+end_src
+
+#+RESULTS:
+: 16
+
+La forma general para definir un procedimiento es:
+#+begin_src scheme
+  (define (<nombre> <parametros formales>)
+    (<cuerpo>))
+#+end_src
+
+El nombre es un simbolo asociado a la definicion del procedimiento en el entorno. Los parametros formales son los nombres utilizados dentro del cuerpo del procedimiento. El cuerpo es una expresion que producira un resultado en el momento que los parametros formales se reemplacen por los reales. El nombre y los parametros formales son agrupados entre parentesis justo como seria la llamada real al procedimiento.
+
+Ej x^2 + y^2:
+
+#+begin_src scheme
+  (define (cuadrado x) (* x x))
+  (define (suma-de-cuadrados x y)
+    (+ (cuadrado x) (cuadrado y)))
+
+  (suma-de-cuadrados 3 4)
+#+end_src
+
+#+RESULTS:
+: 25
+
+*Orden Aplicativo vs Orden Normal*
+
+Como habiamos dicho Scheme evalua primero el operador y los operandos, luego aplica el procedimiento resultante a los argumentos resultantes. Podemos pedirle a Scheme un metodo alternativo, que no evalue los argumentos hasta que sea necesario.
+
+El orden normal, primero expande toda la combinacion hasta que solo quedan primitivas, luego realiza la evaluacion.
+/Primero expande luego reduce./
+Ej:
+
+#+begin_src scheme
+                                          ; Expande
+  (suma-de-cuadrados 3 4)
+  (+ (cuadrado 3) (cuadrado 4))
+  (+ (* 3 3) (* 4 4))
+                                          ; Reduce
+  (+ (9) (16))
+  (25)
+#+end_src
+
+Mientras que el orden aplicativo va evaluando las expresiones primitivas mas anidadas primero y luego evaluando los resultados con el siguiente operador.
+Ej:
+#+begin_src scheme 
+  (suma-de-cuadrados 3 4)
+  (+ (cuadrado 3) (cuadrado 4))
+  (+ (* 3 3) (cuadrado 4))
+  (+ 9 (cuadrado 4))
+                                          ; .....
+
+  (25)
+#+end_src
+
+Scheme utiliza el modo aplicativo por defecto principalmente por la eficiencia adicional obtenida al eludir multiples evaluaciones de expresiones del tipo (+ x y) (* x y) y mas importante, la evaluacion en orden normal se vuelve mas compleja de tratar cuando dejamos el reino de los procedimientos que pueden ser modelados con substituciones.
+
+*** Expresiones Condicionales y Predicados
+
+Los *condicionales* en scheme se utilizan de la siguiente manera:
+
+#+begin_src scheme 
+  (cond (<p1> <e1>) (<p2> <e2>) ... )
+#+end_src
+
+Donde pX es el *predicado* y eX la *expresion* resultante si pX es verdadero, el par /(<p> <e>)/ es llamado *clausula*, ejemplo del valor absoluto:
+
+#+begin_src scheme 
+  (define (abs x)
+    (cond ((> x 0) 0)
+          ((= x 0) 0)
+          ((< x 0) (- x))
+          )
+    )
+
+  (abs (- 20))
+#+end_src
+
+#+RESULTS:
+: 20
+
+Scheme evalua cada uno de los predicados en orden, retorna la expresion del primer predicado en evaluar verdadero, si no hay la condicion es /indefinida/, se puede utilizar *else* en la clausula final de una condicion, esto causa que else retorne la expresion asociada cuando ningun otro predicado fue verdadero.
+
+#+begin_src scheme 
+  (define (abs x)
+    (cond ((< x 0) (- x))
+          (else x)
+          )
+    )
+
+  (abs (- 20))
+#+end_src
+
+#+RESULTS:
+: 20
+
+Tambien podemos usar *if*, la forma general de una expresion if es:
+
+#+begin_src scheme 
+  (if <predicado> <expresion_verdadero> <expresion_falso>)
+#+end_src
+
+Scheme cuenta con operaciones logicas que permiten construir predicados compuestos:
+
+#+begin_src scheme 
+  (and ⟨e1⟩ . . . ⟨en⟩)
+  (or ⟨e1⟩ . . . ⟨en⟩)
+  (not ⟨e⟩)
+#+end_src
+
+Notar que tanto or como and son formas especiales, no procedimientos, ya que las subexpresiones no necesariamente son todas evaluadas.
+
+#+begin_src scheme 
+  (define (>= x y)
+    (or (> x y) (= x y))
+    )
+
+  (define (<= x y)
+    (not (> x y))
+    )
+
+  (<= 2 2)
+#+end_src
+
+#+RESULTS:
+: #t
+

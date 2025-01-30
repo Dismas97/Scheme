@@ -1,0 +1,38 @@
+#+TITLE: Juego de la vida
+#+AUTHOR: fran
+#+DESCRIPTION: Aprendiendo scheme
+#+PROPERTY: header-args :lang scheme
+
+#+begin_src scheme :tangle "JuegoVida.scm" :mkdirp yes
+  (use-modules (g-golf))
+  (gi-import "Gtk")
+
+(display "asdasda")
+  
+  
+  ;; When the application is launched..
+  (define (activate app)
+    ;; - Create a new window and a new button
+    (let ((window (make <gtk-application-window>
+                    #:title "Hello"
+                    #:application app))
+          (button (make <gtk-button>
+                    #:label "Hello, World!")))
+      ;; - Which closes the window when clicked
+      (connect button
+               'clicked
+               (lambda (b)
+                 (close window)))
+      (set-child window button)
+      (show window)))
+
+  ;; Create a new application
+  (let ((app (make <gtk-application>
+               #:application-id "org.example.GtkApplication")))
+    (connect app 'activate activate)
+    ;; Run the application
+    (run app 0 '()))
+
+#+end_src
+
+#+RESULTS:
