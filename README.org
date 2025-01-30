@@ -5,4 +5,4 @@
 Este es un repo personal, es mas que nada para practicar Org-Mode y aprender un lenguaje en el proceso, voy a documentar mis conocimientos de Scheme en 
 [[file:./Scheme.org]] con sus respectivas fuentes.
 
-Tambien voy a poner proyectos que haya hecho en Scheme.
+Tambien voy a poner proyectos que haya hecho en Scheme. El juego de la vida actualmente no tiene nada, tiene codigo de GUI en guile de momento, nada mas.
