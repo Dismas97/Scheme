@@ -1,0 +1,8 @@
+#+TITLE: README
+#+AUTHOR: fran
+#+DESCRIPTION: Este repo va a albergar (o al menos intentar) mi progreso aprendiendo Scheme/Lisp.
+
+Este es un repo personal, es mas que nada para practicar Org-Mode y aprender un lenguaje en el proceso, voy a documentar mis conocimientos de Scheme en 
+[[file:./Scheme.org]] con sus respectivas fuentes.
+
+Tambien voy a poner proyectos que haya hecho en Scheme.

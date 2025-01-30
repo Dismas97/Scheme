@@ -1,4 +1,4 @@
-#+TITLE: Scheme SICP
+#+TITLE: Scheme
 #+AUTHOR: fran
 #+DESCRIPTION: Pasando a limpio lo que aprendi de distintas fuentes sobre SCHEME
 #+PROPERTY: header-args :lang scheme
