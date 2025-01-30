@@ -1,12 +1,12 @@
 #+TITLE: Scheme
 #+AUTHOR: fran
 #+DESCRIPTION: Pasando a limpio lo que aprendi de distintas fuentes sobre SCHEME
-#+PROPERTY: header-args :lang scheme
 #+BIBLIOGRAPHY: Hal Abelson, Gerald Jay Sussman - Structure and Interpretation of Computer Programs.
 
 * TABLA DE CONTENIDOS :toc:
 - [[#construyendo-abstracciones-con-procedimientos][Construyendo Abstracciones con Procedimientos]]
   - [[#elementos-de-la-programacion][Elementos de la programacion]]
+  - [[#procedimientos-y-los-procesos-que-generan][Procedimientos y los procesos que generan]]
 
 * Construyendo Abstracciones con Procedimientos
 ** Elementos de la programacion
@@ -99,6 +99,7 @@ Ej:
 
 Mientras que el orden aplicativo va evaluando las expresiones primitivas mas anidadas primero y luego evaluando los resultados con el siguiente operador.
 Ej:
+
 #+begin_src scheme 
   (suma-de-cuadrados 3 4)
   (+ (cuadrado 3) (cuadrado 4))
@@ -181,3 +182,73 @@ Notar que tanto or como and son formas especiales, no procedimientos, ya que las
 #+RESULTS:
 : #t
 
+En matematicas generalmente nos enfocamos a *descripciones declarativas* (que es), mientras que en computacion nos interesan las *descripciones imperativas* (como hacer).
+
+Ej: /raiz(x) = y/, donde /y >= 0/ y /x = y*y/
+
+No nos dice como obtener el y que cumple dicha condicion, podemos aproximar un resultado con el metodo de newton:
+
+/xn+1 = xn - f(xn)/f'(xn)/,
+
+#+begin_src scheme
+        (define (cuadrado x) (* x x))
+        (define (abs x)
+          (cond ((< x 0) (- x))
+                (else x)
+                ))
+
+        (define (raiz-newton aprox x)
+          (if (buena-aprox? aprox x)
+              aprox
+              (raiz-newton (mejorar-aprox aprox x) x))
+          )
+
+        (define (mejorar-aprox aprox x)
+          (promedio aprox (/ x aprox)))
+
+        (define (promedio x y)
+          (/ (+ x y) 2))
+
+        (define (buena-aprox? aprox x)
+          (< (abs (- (cuadrado aprox) x))
+             0.0001
+             ))
+
+      (raiz-newton 4 17)
+#+end_src
+
+#+RESULTS:
+: 2177/528
+
+*** Procedimientos Abstracciones Caja Negra
+
+*Nombres Locales*
+Al definir procedimientos, los nombres que utilizamos en los parametros formales son llamados *Variables Vinculadas*, dichas variables son locales al cuerpo de la definicion del procedimiento, por ejemplo en raiz-newton nuestras variables vinculadas serian aprox y x, sin embargo if, buena-aprox?, etc. No son locales a dicha definicion, son llamadas *Libres*, que pasa si tenemos un sistema grande y contamos con diferentes procedimientos /buena-aprox?/ diferentes?.
+
+*Definiciones internas y estructura de bloques*
+Para solucionar el problema nombrado contamos con *subprocedimientos*, definiendolos internamente en un bloque:
+
+#+begin_src scheme
+  (define (cuadrado x) (* x x))
+  (define (abs x) (cond ((< x 0) (- x)) (else x) ))
+  (define (promedio x y) (/ (+ x y) 2))
+
+  (define (raiz-newton aprox x)
+    (define (mejorar-aprox aprox)
+      (promedio aprox (/ x aprox)))
+    (define (buena-aprox? aprox)
+      (< (abs (- (cuadrado aprox) x))
+         0.0001 ))
+
+    (if (buena-aprox? aprox)
+        aprox
+        (raiz-newton (mejorar-aprox aprox) x))
+    )
+
+  (raiz-newton 4 19)
+
+#+end_src
+
+Ahora mejorar-aprox y buena-aprox son subprocedimientos locales a raiz-newton, si mas adelante tenemos funciones de evaluacion de aproximaciones diferentes no van a interferir en nuestro algoritmo.
+
+** Procedimientos y los procesos que generan
