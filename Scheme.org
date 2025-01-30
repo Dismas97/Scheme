@@ -10,6 +10,8 @@
 
 * Construyendo Abstracciones con Procedimientos
 ** Elementos de la programacion
+Todo lenguaje de programacion debe proveer medios para la construccion de ideas complejas a partir de ideas simples, por ello todo lenguaje cuenta con tres mecanismos para lograrlo:
+
 *Expresiones Primitivas:* las entidades mas simples que maneja el lenguaje, int, float, etc.
 
 *Metodos de Combinacion:* elementos complejos son construidos a partir de elementos mas simples.
