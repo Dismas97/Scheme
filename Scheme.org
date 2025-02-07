@@ -8,6 +8,7 @@
   - [[#elementos-de-la-programacion][Elementos de la programacion]]
   - [[#procedimientos-y-los-procesos-que-generan][Procedimientos y los procesos que generan]]
   - [[#formulando-abstraciones-con-procedimientos-de-orden-superior][Formulando Abstraciones con Procedimientos de Orden Superior]]
+- [[#construyendo-abstracciones-con-datos][Construyendo Abstracciones con Datos]]
 
 * Construyendo Abstracciones con Procedimientos
 ** Elementos de la programacion
@@ -20,7 +21,7 @@ Todo lenguaje de programacion debe proveer medios para la construccion de ideas 
 *Metodos de Abstraccion:* elementos complejos pueden ser nombrados y tratados como unidades.
 
 *** Expresiones
-Scheme (como todo dialecto lisp), utiliza notacion polaca, expresiones primitivas como suma, numeros, etc. se pueden combinar para formar *Combinaciones*, estas estan formadas por una *lista de expresiones*, el elemento mas a la izquierda es el *Operador*, el resto de elementos son sus *Operandos*, cada operando puede ser a su vez otra combinacion permitiendo a las combinaciones estar *Anidadas*, en principio no hay limite de la profundidad del anidamiento:
+Scheme (como todo dialecto lisp), utiliza notacion polaca, expresiones primitivas como suma, numeros, etc. se pueden combinar para formar *combinaciones*, estas estan formadas por una *lista de expresiones*, el elemento mas a la izquierda es el *operador*, el resto de elementos son sus *operandos*, cada operando puede ser a su vez otra combinacion permitiendo a las combinaciones estar *anidadas*, en principio no hay limite de la profundidad del anidamiento:
 
 #+begin_src scheme
                                           ; Expresiones primitivas
@@ -36,7 +37,7 @@ Scheme (como todo dialecto lisp), utiliza notacion polaca, expresiones primitiva
      (* 1 1))
 #+end_src
 
-Para la definicion de *Variables*, la funcion /define/ nos permite nombrar algo en el *entorno global*, se puede definir en distintos entornos.
+Para la definicion de *variables*, la funcion /define/ nos permite nombrar algo en el *entorno global*, se puede definir en distintos entornos.
 *** TODO Agregar otras definiciones de variables en diferentes entornos
 #+begin_src scheme
   (define variable "Hola mundo")
@@ -46,7 +47,7 @@ Para la definicion de *Variables*, la funcion /define/ nos permite nombrar algo 
 #+RESULTS:
 : Hola mundo
 
-Notar que (define x y) no es una combinacion, ya que no aplica el operador a sus operandos, sino que los asocia, dichas excepciones son llamadas *Formas Especiales*. Cada forma especial tiene su propia regla de evaluacion.
+Notar que (define x y) no es una combinacion, ya que no aplica el operador a sus operandos, sino que los asocia, dichas excepciones son llamadas *formas especiales*. Cada forma especial tiene su propia regla de evaluacion.
 
 *** Procedimientos Compuestos
 Para definir procedimientos en Scheme, de nuevo utilizamos /define/. Ej potencia 2:
@@ -65,7 +66,7 @@ La forma general para definir un procedimiento es:
     (<cuerpo>))
 #+end_src
 
-El nombre es un simbolo asociado a la definicion del procedimiento en el entorno. Los parametros formales son los nombres utilizados dentro del cuerpo del procedimiento. El cuerpo es una expresion que producira un resultado en el momento que los parametros formales se reemplacen por los reales. El nombre y los parametros formales son agrupados entre parentesis justo como seria la llamada real al procedimiento.
+El /nombre/ es un simbolo asociado a la definicion del procedimiento en el entorno. Los /parametros formales/ son los nombres utilizados dentro del cuerpo del procedimiento. El /cuerpo/ es una expresion que producira un resultado en el momento que los parametros formales se reemplacen por los reales. El nombre y los parametros formales son agrupados entre parentesis justo como seria la llamada real al procedimiento.
 
 Ej x^2 + y^2:
 
@@ -84,8 +85,10 @@ Ej x^2 + y^2:
 
 Como habiamos dicho Scheme evalua primero el operador y los operandos, luego aplica el procedimiento resultante a los argumentos resultantes. Podemos pedirle a Scheme un metodo alternativo, que no evalue los argumentos hasta que sea necesario.
 
-El orden normal, primero expande toda la combinacion hasta que solo quedan primitivas, luego realiza la evaluacion.
+El *orden normal*, primero expande toda la combinacion hasta que solo quedan primitivas, luego realiza la evaluacion.
+
 /Primero expande luego reduce./
+
 Ej:
 
 #+begin_src scheme
@@ -98,7 +101,8 @@ Ej:
   (25)
 #+end_src
 
-Mientras que el orden aplicativo va evaluando las expresiones primitivas mas anidadas primero y luego evaluando los resultados con el siguiente operador.
+Mientras que el *orden aplicativo* va evaluando las expresiones primitivas mas anidadas primero y luego evaluando los resultados con el siguiente operador.
+
 Ej:
 
 #+begin_src scheme 
@@ -121,7 +125,7 @@ Los *condicionales* en scheme se utilizan de la siguiente manera:
   (cond (<p1> <e1>) (<p2> <e2>) ... )
 #+end_src
 
-Donde pX es el *predicado* y eX la *expresion* resultante si pX es verdadero, el par /(<p> <e>)/ es llamado *clausula*, ejemplo del valor absoluto:
+Donde pi es el *predicado* y ei la *expresion* resultante si pi es verdadero, el par /(<pi> <ei>)/ es llamado *clausula*. Veamos un ejemplo con el valor absoluto:
 
 #+begin_src scheme 
   (define (abs x)
@@ -137,14 +141,12 @@ Donde pX es el *predicado* y eX la *expresion* resultante si pX es verdadero, el
 #+RESULTS:
 : 20
 
-Scheme evalua cada uno de los predicados en orden, retorna la expresion del primer predicado en evaluar verdadero, si no hay la condicion es /indefinida/, se puede utilizar *else* en la clausula final de una condicion, esto causa que else retorne la expresion asociada cuando ningun otro predicado fue verdadero.
+Scheme evalua cada uno de los predicados en orden, retorna la expresion del primer predicado en evaluar verdadero, si no hay, la condicion es /indefinida/. Se puede utilizar *else* en la clausula final de una condicion, esto causa que else retorne la expresion asociada cuando ningun otro predicado fue verdadero.
 
 #+begin_src scheme 
   (define (abs x)
     (cond ((< x 0) (- x))
-          (else x)
-          )
-    )
+          (else x)))
 
   (abs (- 20))
 #+end_src
@@ -155,7 +157,7 @@ Scheme evalua cada uno de los predicados en orden, retorna la expresion del prim
 Tambien podemos usar *if*, la forma general de una expresion if es:
 
 #+begin_src scheme 
-  (if <predicado> <expresion_verdadero> <expresion_falso>)
+  (if <predicado> <expresion_v> <expresion_f>)
 #+end_src
 
 Scheme cuenta con operaciones logicas que permiten construir predicados compuestos:
@@ -166,16 +168,14 @@ Scheme cuenta con operaciones logicas que permiten construir predicados compuest
   (not ⟨e⟩)
 #+end_src
 
-Notar que tanto or como and son formas especiales, no procedimientos, ya que las subexpresiones no necesariamente son todas evaluadas.
+Notar que tanto /or/ como /and/ son formas especiales, no procedimientos, ya que las subexpresiones no necesariamente son todas evaluadas.
 
 #+begin_src scheme 
   (define (>= x y)
-    (or (> x y) (= x y))
-    )
+    (or (> x y) (= x y)))
 
   (define (<= x y)
-    (not (> x y))
-    )
+    (not (> x y)))
 
   (<= 2 2)
 #+end_src
@@ -183,11 +183,11 @@ Notar que tanto or como and son formas especiales, no procedimientos, ya que las
 #+RESULTS:
 : #t
 
-En matematicas generalmente nos enfocamos a *descripciones declarativas* (que es), mientras que en computacion nos interesan las *descripciones imperativas* (como hacer).
+En matematicas generalmente nos enfocamos a *descripciones declarativas* /que es/, mientras que en computacion nos interesan las *descripciones imperativas* /como hacer/.
 
 Ej: /raiz(x) = y/, donde /y >= 0/ y /x = y*y/
 
-No nos dice como obtener el y que cumple dicha condicion, podemos aproximar un resultado con el metodo de newton:
+No nos dice como obtener el numero /y/ que cumple dicha condicion, podemos aproximar un resultado con el metodo de newton:
 
 /xn+1 = xn - f(xn)/f'(xn)/,
 
@@ -221,10 +221,11 @@ No nos dice como obtener el y que cumple dicha condicion, podemos aproximar un r
 #+RESULTS:
 : 2177/528
 
-*** Procedimientos Abstracciones Caja Negra
+*** Procedimientos: abstracciones caja negra
 
 *Nombres Locales*
-Al definir procedimientos, los nombres que utilizamos en los parametros formales son llamados *Variables Vinculadas*, dichas variables son locales al cuerpo de la definicion del procedimiento, por ejemplo en raiz-newton nuestras variables vinculadas serian aprox y x, sin embargo if, buena-aprox?, etc. No son locales a dicha definicion, son llamadas *Libres*, que pasa si tenemos un sistema grande y contamos con diferentes procedimientos /buena-aprox?/ diferentes?.
+Al definir procedimientos, los nombres que utilizamos en los parametros formales son llamados *variables vinculadas*, dichas variables son locales al cuerpo de la definicion del procedimiento, por ejemplo en raiz-newton nuestras variables vinculadas serian /aprox, y, x/.
+Sin embargo /if, buena-aprox?/, etc. no son locales a dicha definicion, son llamadas *libres*, que pasa si tenemos un sistema grande y contamos con varios procedimientos /buena-aprox/ diferentes?.
 
 *Definiciones internas y estructura de bloques*
 Para solucionar el problema nombrado contamos con *subprocedimientos*, definiendolos internamente en un bloque:
@@ -250,7 +251,7 @@ Para solucionar el problema nombrado contamos con *subprocedimientos*, definiend
 
 #+end_src
 
-Ahora mejorar-aprox y buena-aprox son subprocedimientos locales a raiz-newton, si mas adelante tenemos funciones de evaluacion de aproximaciones diferentes no van a interferir en nuestro algoritmo.
+Ahora /mejorar-aprox/ y /buena-aprox/ son subprocedimientos locales a raiz-newton, si mas adelante tenemos funciones de evaluacion de aproximaciones diferentes no van a interferir en nuestro procedimiento.
 
 ** Procedimientos y los procesos que generan
 
@@ -402,7 +403,7 @@ De manera similar como diseñadores, nos gustaria contar con un lenguaje lo sufi
 : 3.139592655589783
 
 *** Procedimientos usando /lambda/
-En vez de estar definiendo uno a uno procedimientos como incrementar-x, pi-sig, pi-fun, etc. podemos describir lo que queremos utilizando la forma especial *lambda*:
+En vez de estar definiendo uno a uno procedimientos como /incrementar-x, pi-sig, pi-fun, etc./ podemos describir lo que queremos utilizando la forma especial *lambda*:
 
 #+begin_src scheme
   (define (sumatoria fun-f a b fun-sig)
@@ -435,7 +436,7 @@ Otro uso de lambda esta en crear variables locales.
 (let ((<var1> <exp1>) .. (<varn> <expn>)) (<cuerpo>))
 #+end_src
 
-La primer parte de la expresion *let* es una lista de pares nombre-expresion. Cuando let es evaluado, cada nombre es asociado con el valor de la expresion correspondiente. El cuerpo de let es evaluado con dichos nombres asociados como variables locales. La expresion let es interpretada como una altrenativa sintactica a:
+La primer parte de la expresion *let* es una lista de pares /nombre-expresion/. Cuando let es evaluado, cada nombre es asociado con el valor de la expresion correspondiente. El cuerpo de let es evaluado con dichos nombres asociados como variables locales. La expresion let es interpretada como una altrenativa sintactica a:
 
 #+begin_src scheme 
 ((lambda (<var1> .. <varn>) <cuerpo>) <exp1> .. <expn>)
@@ -454,4 +455,26 @@ No se requieren de nuevos mecanismo en el interprete para proveer variables loca
 #+RESULTS:
 : 14
 
-*** Procedimientos como metodos generales
+*** Procedimientos como valores de retorno
+Hemos visto como la habilidad de pasar procedimientos como argumentos incrementa enormemente el poder expresivo de nuestro lenguaje. Podemos mejorar esto aun mas creando procedimientos cuyos valores de retorno sean procedimientos. Veamos un ejemplo, sabemos que la derivada de una funcion es:
+
+f'(x) = (f(x+dx) - f(x)/dx)
+
+Podemos definir un procedimiento que nos devuelva la derivada de una funcion.
+
+#+begin_src scheme 
+  (define (derivada fun)
+    (lambda (x) (/ (- (fun (+ x dx)) (fun x)) dx)))
+
+   ; como derivada retorna procedimiento (generado por lambda), podemos aplicar su resultado a un valor
+
+    (define (cuadrado x) (* x x))
+    (define dx 0.000000001) ; dx -> 0
+   
+    ((derivada cuadrado) 10) ; derivada de x2 es 2x, 2(10) = 20
+#+end_src
+
+#+RESULTS:
+: 20.00000165480742
+
+* Construyendo Abstracciones con Datos
