@@ -7,6 +7,7 @@
 - [[#construyendo-abstracciones-con-procedimientos][Construyendo Abstracciones con Procedimientos]]
   - [[#elementos-de-la-programacion][Elementos de la programacion]]
   - [[#procedimientos-y-los-procesos-que-generan][Procedimientos y los procesos que generan]]
+  - [[#formulando-abstraciones-con-procedimientos-de-orden-superior][Formulando Abstraciones con Procedimientos de Orden Superior]]
 
 * Construyendo Abstracciones con Procedimientos
 ** Elementos de la programacion
@@ -191,30 +192,30 @@ No nos dice como obtener el y que cumple dicha condicion, podemos aproximar un r
 /xn+1 = xn - f(xn)/f'(xn)/,
 
 #+begin_src scheme
-        (define (cuadrado x) (* x x))
-        (define (abs x)
-          (cond ((< x 0) (- x))
-                (else x)
-                ))
+  (define (cuadrado x) (* x x))
+  (define (abs x)
+    (cond ((< x 0) (- x))
+          (else x)
+          ))
 
-        (define (raiz-newton aprox x)
-          (if (buena-aprox? aprox x)
-              aprox
-              (raiz-newton (mejorar-aprox aprox x) x))
-          )
+  (define (raiz-newton aprox x)
+    (if (buena-aprox? aprox x)
+        aprox
+        (raiz-newton (mejorar-aprox aprox x) x))
+    )
 
-        (define (mejorar-aprox aprox x)
-          (promedio aprox (/ x aprox)))
+  (define (mejorar-aprox aprox x)
+    (promedio aprox (/ x aprox)))
 
-        (define (promedio x y)
-          (/ (+ x y) 2))
+  (define (promedio x y)
+    (/ (+ x y) 2))
 
-        (define (buena-aprox? aprox x)
-          (< (abs (- (cuadrado aprox) x))
-             0.0001
-             ))
+  (define (buena-aprox? aprox x)
+    (< (abs (- (cuadrado aprox) x))
+       0.0001
+       ))
 
-      (raiz-newton 4 17)
+  (raiz-newton 4 17)
 #+end_src
 
 #+RESULTS:
@@ -252,3 +253,205 @@ Para solucionar el problema nombrado contamos con *subprocedimientos*, definiend
 Ahora mejorar-aprox y buena-aprox son subprocedimientos locales a raiz-newton, si mas adelante tenemos funciones de evaluacion de aproximaciones diferentes no van a interferir en nuestro algoritmo.
 
 ** Procedimientos y los procesos que generan
+
+Un procedimiento es un patron para la *evolucion local* de un proceso computacional. Especifica como cada estapa del proceso es construida sobre la anterior. Nos gustaria ser capaces de hacer afirmaciones globales sobre el comportamiento global del proceso, cuya evolucion local ya ha sido especificada por un procedimiento.
+
+*** Recursion Linear e Iteraciones
+Cuando realizamos recursion en Scheme, el proceso construye una cadena de *operaciones diferidas*, ya que tiene que expandir de nuevo el procedimiento y mantener la informacion de la operacion del procedimiento anterior
+#+begin_src scheme 
+  (define (factorial n)
+    (if (= n 1)
+        1
+        (* n (factorial (- n 1)))))
+
+  (factorial 5)
+#+end_src
+
+#+RESULTS:
+: 120
+
+Este ej ejecutra de la sig manera:
+
+#+begin_src scheme 
+  (* 5 ( factorial 4))
+
+  (* 5 (* 4 (factorial 3)))
+  ...
+  (* 5 (* 4 (* 3 (* 2 (1)))))
+#+end_src
+
+Podemos hacerlo de forma iterativa, devolviendo la evaluacion del siguiente paso con los parametros reales, solo manteniendo la informacion de los operandos, sin tener que crear una lista de operaciones diferidas:
+
+#+begin_src scheme 
+  (define (factorial producto contador max-cant)
+    (if (> contador max-cant)
+        producto
+        (factorial (* producto contador) (+ contador 1) max-cant)
+        ))
+
+  (factorial 1 1 5)
+#+end_src
+
+#+RESULTS:
+: 120
+
+De forma interactiva la ejecucion es:
+
+#+begin_src scheme 
+  (factorial 1 1 5)
+  (factorial 1 2 5)
+  (factorial 2 3 5)
+  (factorial 6 4 5)
+  ...
+#+end_src
+
+La mayoria de lenguajes estan diseñados de forma que la interpretacion de procedimientos recursivos consumen una cantidad creciente de memoria con cada llamada, incluso cuando el proceso que describe es iterativo. Scheme permite ejecutar un proceso iterativo en un espacio constante incluso si es descrito por un procedimiento recursivo. Dichas implementaciones con esta propiedad se llaman *cola-recursiva*.
+
+*** Arbol Recursivo
+Cuando tenemos multiples llamadas recursivas en nuestros procedimientos, la ejecucion del procedimiento tendra una forma de arbol, el cual crece de manera exponencial.
+#+begin_src scheme 
+  (define (fib n)
+    (if (< n 2)
+        n
+        (+ (fib (- n 1)) (fib (- n 2)))
+        ))
+
+  (fib 5)
+#+end_src
+
+#+RESULTS:
+: 5
+
+[[file:./Imagenes/fib.png]]
+
+Otro ejemplo de arbol recursivo y una variante iterativa
+
+#+begin_src scheme 
+  (define (f n)
+    (if (< n 3)
+        n
+        (+ (f (- n 1)) (* 2 (f (- n 2))) (* 3 (f (- n 3))) )
+        ))
+
+  (f 20)
+#+end_src
+
+#+RESULTS:
+: 10771211
+
+#+begin_src scheme
+  (define (f-iter n)
+    (define (f-iter-aux n i a b c)
+      (if (< n 3)
+          n
+          (if (< i n)
+              (f-iter-aux n (+ i 1) b c (+ c (* 2 b) (* 3 a)) )
+              c)))
+
+    (f-iter-aux n 2 0 1 2))
+
+  (f-iter 20)
+
+#+end_src
+
+#+RESULTS:
+: 10771211
+
+** Formulando Abstraciones con Procedimientos de Orden Superior
+Los procedimientos que toman otros procedimientos como parametros son llamados *procedimientos de orden superior*, en esta seccion veremos como los procedimientos de orden superior son herramientas de abstraccion muy poderosas.
+
+*** Procedimientos como Argumentos
+Algunos procedimientos tienen patrones en comun, por ejemplo si quisieramos sumar los numeros dentro de un rango o sus potencias, en ambos procedimientos realizamos una suma recorriendo un intervalo.
+
+En matematicas dicho patron ya ha sido identificado hace tiempo, es una *suma de series*, creando la notacion sigma: 
+
+∑n=a,b f(n) = f(a) + .. + f(b)
+
+El poder de la notacion sigma es que permite a los matematicos tratar con el concepto de sumatoria en vez de solamente con sumas particulares.
+
+De manera similar como diseñadores, nos gustaria contar con un lenguaje lo suficientemente poderoso que nos permita escribir procedimientos que traten la idea de sumatoria antes de procedimientos que calculan sumas particulares. En Scheme esto se puede hacer facilmente:
+
+#+begin_src scheme 
+  (define (sumatoria fun-f a b fun-sig)
+    (if (> a b)
+        0
+        (+ (fun-f a) (sumatoria fun-f (fun-sig a) b fun-sig))
+        ))
+
+                                          ; Veamos la sumatoria de todos los numeros pares entre 0 100
+  (define (incrementar-dos a) (+ a 2))
+
+  (sumatoria + 0 100 incrementar-dos)
+
+                                          ; Ahora la sumatoria de los cubos entre 0 y 100
+
+  (define (incrementar-uno a) (+ a 1))
+  (define (cubo a) (* a a a))
+
+  (sumatoria cubo 0 100 incrementar-uno)
+
+                                          ; Aproximemos pi
+  (define (pi-fun x) (/ 1.0 (* x (+ x 2))))
+  (define (pi-sig x) (+ x 4))
+
+  (* (sumatoria pi-fun 1 1000 pi-sig) 8)
+
+#+end_src
+
+#+RESULTS:
+: 3.139592655589783
+
+*** Procedimientos usando /lambda/
+En vez de estar definiendo uno a uno procedimientos como incrementar-x, pi-sig, pi-fun, etc. podemos describir lo que queremos utilizando la forma especial *lambda*:
+
+#+begin_src scheme
+  (define (sumatoria fun-f a b fun-sig)
+    (if (> a b)
+        0
+        (+ (fun-f a) (sumatoria fun-f (fun-sig a) b fun-sig))
+        ))
+
+;; Veamos la sumatoria de cubos de los numeros pares entre 0 100
+
+  (sumatoria
+   (lambda (x) (* x x x))
+   0
+   100
+   (lambda (x) (+ x 2)))
+
+#+end_src
+
+#+RESULTS:
+: 13005000
+
+En general lambda es utilizado para crear procedimientos de la misma forma que define, con la excepcion que no se lo asocia a ningun nombre del entorno.
+
+#+begin_src scheme 
+(lambda (<parametros-formales>) (<cuerpo>))
+#+end_src
+
+Otro uso de lambda esta en crear variables locales.
+#+begin_src scheme 
+(let ((<var1> <exp1>) .. (<varn> <expn>)) (<cuerpo>))
+#+end_src
+
+La primer parte de la expresion *let* es una lista de pares nombre-expresion. Cuando let es evaluado, cada nombre es asociado con el valor de la expresion correspondiente. El cuerpo de let es evaluado con dichos nombres asociados como variables locales. La expresion let es interpretada como una altrenativa sintactica a:
+
+#+begin_src scheme 
+((lambda (<var1> .. <varn>) <cuerpo>) <exp1> .. <expn>)
+#+end_src
+
+No se requieren de nuevos mecanismo en el interprete para proveer variables locales. Veamos un ejemplo
+
+#+begin_src scheme
+      (define x 5)
+  
+      (+
+       (let ((x 3)) (* x 3)) ; aca x es local al let, por lo que x=3, let evalua 3*3
+       x) ;aca el x es el definido arriba, 5, 5 + let = 5+9 = 14
+#+end_src
+
+#+RESULTS:
+: 14
+
+*** Procedimientos como metodos generales
