@@ -9,6 +9,8 @@
   - [[#procedimientos-y-los-procesos-que-generan][Procedimientos y los procesos que generan]]
   - [[#formulando-abstraciones-con-procedimientos-de-orden-superior][Formulando Abstraciones con Procedimientos de Orden Superior]]
 - [[#construyendo-abstracciones-con-datos][Construyendo Abstracciones con Datos]]
+  - [[#abstracciones-de-datos][Abstracciones de Datos]]
+  - [[#que-se-entiende-por-datos][¿Que se entiende por datos?]]
 
 * Construyendo Abstracciones con Procedimientos
 ** Elementos de la programacion
@@ -131,9 +133,7 @@ Donde pi es el *predicado* y ei la *expresion* resultante si pi es verdadero, el
   (define (abs x)
     (cond ((> x 0) 0)
           ((= x 0) 0)
-          ((< x 0) (- x))
-          )
-    )
+          ((< x 0) (- x))))
 
   (abs (- 20))
 #+end_src
@@ -195,14 +195,12 @@ No nos dice como obtener el numero /y/ que cumple dicha condicion, podemos aprox
   (define (cuadrado x) (* x x))
   (define (abs x)
     (cond ((< x 0) (- x))
-          (else x)
-          ))
+          (else x)))
 
   (define (raiz-newton aprox x)
     (if (buena-aprox? aprox x)
         aprox
-        (raiz-newton (mejorar-aprox aprox x) x))
-    )
+        (raiz-newton (mejorar-aprox aprox x) x)))
 
   (define (mejorar-aprox aprox x)
     (promedio aprox (/ x aprox)))
@@ -212,8 +210,7 @@ No nos dice como obtener el numero /y/ que cumple dicha condicion, podemos aprox
 
   (define (buena-aprox? aprox x)
     (< (abs (- (cuadrado aprox) x))
-       0.0001
-       ))
+       0.0001))
 
   (raiz-newton 4 17)
 #+end_src
@@ -240,16 +237,17 @@ Para solucionar el problema nombrado contamos con *subprocedimientos*, definiend
       (promedio aprox (/ x aprox)))
     (define (buena-aprox? aprox)
       (< (abs (- (cuadrado aprox) x))
-         0.0001 ))
-
+         0.0001))
     (if (buena-aprox? aprox)
         aprox
-        (raiz-newton (mejorar-aprox aprox) x))
-    )
+        (raiz-newton (mejorar-aprox aprox) x)))
 
   (raiz-newton 4 19)
 
 #+end_src
+
+#+RESULTS:
+: 11916881/2733920
 
 Ahora /mejorar-aprox/ y /buena-aprox/ son subprocedimientos locales a raiz-newton, si mas adelante tenemos funciones de evaluacion de aproximaciones diferentes no van a interferir en nuestro procedimiento.
 
@@ -287,8 +285,7 @@ Podemos hacerlo de forma iterativa, devolviendo la evaluacion del siguiente paso
   (define (factorial producto contador max-cant)
     (if (> contador max-cant)
         producto
-        (factorial (* producto contador) (+ contador 1) max-cant)
-        ))
+        (factorial (* producto contador) (+ contador 1) max-cant)))
 
   (factorial 1 1 5)
 #+end_src
@@ -314,8 +311,7 @@ Cuando tenemos multiples llamadas recursivas en nuestros procedimientos, la ejec
   (define (fib n)
     (if (< n 2)
         n
-        (+ (fib (- n 1)) (fib (- n 2)))
-        ))
+        (+ (fib (- n 1)) (fib (- n 2)))))
 
   (fib 5)
 #+end_src
@@ -328,30 +324,33 @@ Cuando tenemos multiples llamadas recursivas en nuestros procedimientos, la ejec
 Otro ejemplo de arbol recursivo y una variante iterativa
 
 #+begin_src scheme 
-  (define (f n)
-    (if (< n 3)
-        n
-        (+ (f (- n 1)) (* 2 (f (- n 2))) (* 3 (f (- n 3))) )
-        ))
+    (define (f n)
+      (if (< n 3)
+          n
+          (+ (f (- n 1))
+             (* 2 (f (- n 2)))
+             (* 3 (f (- n 3))))))
 
-  (f 20)
+    (f 20)
 #+end_src
 
 #+RESULTS:
 : 10771211
 
 #+begin_src scheme
-  (define (f-iter n)
-    (define (f-iter-aux n i a b c)
-      (if (< n 3)
-          n
-          (if (< i n)
-              (f-iter-aux n (+ i 1) b c (+ c (* 2 b) (* 3 a)) )
-              c)))
+          (define (f-iter n)
+            (define (f-iter-aux n i a b c)
+              (if (< n 3)
+                  n
+                  (if (< i n)
+                      (f-iter-aux n
+                                  (+ i 1)
+                                  b c
+                                  (+ c (* 2 b) (* 3 a)))
+                      c)))
+            (f-iter-aux n 2 0 1 2))
 
-    (f-iter-aux n 2 0 1 2))
-
-  (f-iter 20)
+          (f-iter 20)
 
 #+end_src
 
@@ -373,29 +372,29 @@ El poder de la notacion sigma es que permite a los matematicos tratar con el con
 De manera similar como diseñadores, nos gustaria contar con un lenguaje lo suficientemente poderoso que nos permita escribir procedimientos que traten la idea de sumatoria antes de procedimientos que calculan sumas particulares. En Scheme esto se puede hacer facilmente:
 
 #+begin_src scheme 
-  (define (sumatoria fun-f a b fun-sig)
-    (if (> a b)
-        0
-        (+ (fun-f a) (sumatoria fun-f (fun-sig a) b fun-sig))
-        ))
+    (define (sumatoria fun-f a b fun-sig)
+      (if (> a b)
+          0
+          (+ (fun-f a)
+             (sumatoria fun-f (fun-sig a) b fun-sig))))
 
-                                          ; Veamos la sumatoria de todos los numeros pares entre 0 100
-  (define (incrementar-dos a) (+ a 2))
+                                            ; Veamos la sumatoria de todos los numeros pares entre 0 100
+    (define (incrementar-dos a) (+ a 2))
 
-  (sumatoria + 0 100 incrementar-dos)
+    (sumatoria + 0 100 incrementar-dos)
 
-                                          ; Ahora la sumatoria de los cubos entre 0 y 100
+                                            ; Ahora la sumatoria de los cubos entre 0 y 100
 
-  (define (incrementar-uno a) (+ a 1))
-  (define (cubo a) (* a a a))
+    (define (incrementar-uno a) (+ a 1))
+    (define (cubo a) (* a a a))
 
-  (sumatoria cubo 0 100 incrementar-uno)
+    (sumatoria cubo 0 100 incrementar-uno)
 
-                                          ; Aproximemos pi
-  (define (pi-fun x) (/ 1.0 (* x (+ x 2))))
-  (define (pi-sig x) (+ x 4))
+                                            ; Aproximemos pi
+    (define (pi-fun x) (/ 1.0 (* x (+ x 2))))
+    (define (pi-sig x) (+ x 4))
 
-  (* (sumatoria pi-fun 1 1000 pi-sig) 8)
+    (* (sumatoria pi-fun 1 1000 pi-sig) 8)
 
 #+end_src
 
@@ -409,10 +408,9 @@ En vez de estar definiendo uno a uno procedimientos como /incrementar-x, pi-sig,
   (define (sumatoria fun-f a b fun-sig)
     (if (> a b)
         0
-        (+ (fun-f a) (sumatoria fun-f (fun-sig a) b fun-sig))
-        ))
+        (+ (fun-f a) (sumatoria fun-f (fun-sig a) b fun-sig))))
 
-;; Veamos la sumatoria de cubos de los numeros pares entre 0 100
+  ;; Veamos la sumatoria de cubos de los numeros pares entre 0 100
 
   (sumatoria
    (lambda (x) (* x x x))
@@ -428,28 +426,28 @@ En vez de estar definiendo uno a uno procedimientos como /incrementar-x, pi-sig,
 En general lambda es utilizado para crear procedimientos de la misma forma que define, con la excepcion que no se lo asocia a ningun nombre del entorno.
 
 #+begin_src scheme 
-(lambda (<parametros-formales>) (<cuerpo>))
+  (lambda (<parametros-formales>) (<cuerpo>))
 #+end_src
 
 Otro uso de lambda esta en crear variables locales.
 #+begin_src scheme 
-(let ((<var1> <exp1>) .. (<varn> <expn>)) (<cuerpo>))
+  (let ((<var1> <exp1>) .. (<varn> <expn>)) (<cuerpo>))
 #+end_src
 
 La primer parte de la expresion *let* es una lista de pares /nombre-expresion/. Cuando let es evaluado, cada nombre es asociado con el valor de la expresion correspondiente. El cuerpo de let es evaluado con dichos nombres asociados como variables locales. La expresion let es interpretada como una altrenativa sintactica a:
 
 #+begin_src scheme 
-((lambda (<var1> .. <varn>) <cuerpo>) <exp1> .. <expn>)
+  ((lambda (<var1> .. <varn>) <cuerpo>) <exp1> .. <expn>)
 #+end_src
 
 No se requieren de nuevos mecanismo en el interprete para proveer variables locales. Veamos un ejemplo
 
 #+begin_src scheme
-      (define x 5)
-  
-      (+
-       (let ((x 3)) (* x 3)) ; aca x es local al let, por lo que x=3, let evalua 3*3
-       x) ;aca el x es el definido arriba, 5, 5 + let = 5+9 = 14
+  (define x 5)
+
+  (+
+   (let ((x 3)) (* x 3)) ; aca x es local al let, por lo que x=3, let evalua 3*3
+   x) ;aca el x es el definido arriba, 5, 5 + let = 5+9 = 14
 #+end_src
 
 #+RESULTS:
@@ -462,19 +460,149 @@ f'(x) = (f(x+dx) - f(x)/dx)
 
 Podemos definir un procedimiento que nos devuelva la derivada de una funcion.
 
-#+begin_src scheme 
+#+begin_src scheme
+  
+  (define dx 0.000000001) ; dx -> 0
   (define (derivada fun)
     (lambda (x) (/ (- (fun (+ x dx)) (fun x)) dx)))
 
-   ; como derivada retorna procedimiento (generado por lambda), podemos aplicar su resultado a un valor
+                                          ; como derivada retorna procedimiento (generado por lambda), podemos aplicar su resultado a un valor
 
-    (define (cuadrado x) (* x x))
-    (define dx 0.000000001) ; dx -> 0
-   
-    ((derivada cuadrado) 10) ; derivada de x2 es 2x, 2(10) = 20
+  (define (cuadrado x) (* x x))
+
+  ((derivada cuadrado) 10) ; derivada de x2 es 2x, 2(10) = 20
 #+end_src
 
 #+RESULTS:
 : 20.00000165480742
 
 * Construyendo Abstracciones con Datos
+** Abstracciones de Datos
+Construimos *abstracciones de datos* a partir de datos simples uniendolos en *datos compuestos*. Su objetivo principal es estructurar programas que van a utilizar datos compuestos de forma que operen en "abstracciones de datos".
+
+Esto es, nuestros programas deberian utilizar los datos de manera tal que nos permita no realizar asunciones sobre datos que no sean estrictamente necesarios conocer para realizar la tarea dada. Al mismo tiempo una representacion "concreta" es definida independientemente de los programas que la usen como datos. La interfaz entre ambas partes de nuestro sistema sera un conjunto de procedimientos llamados *selectores* y *constructores*.
+
+Veremos como las abstracciones de datos nos permitiran delimitar barreras abstractas entre las diferentes partes de nuestro programa.
+
+Todo lenguaje cuenta con una una herramienta que sirva de "pegamento" para unir datos simples, veremos como lograr esto en Scheme sin utilizar operaciones de datos, sino mas bien procedimientos, diluyendo aun mas la distincion entre dato y procedimiento.
+
+Supongamos que queremos realizar procedimientos que realicen las operaciones de suma, resta, etc. en numeros racionales representados por dos enteros numerador y denominador, asumamos que existen procedimientos /nuevo-racional num den/ que devuelve una abstraccion de datos de un numero racional y los procedimientos /numerador x/, /denominador x/ que devuelven el numerador y denominador del numero racional.
+
+Podemos expresar las operaciones como:
+
+#+begin_src scheme 
+  (define (suma-racional x y)
+    (nuevo-racional (+ (* (numerador x) (denominador y))
+                 (* (numerador y) (denominador x)))
+              (* (denominador x) (denominador y))))
+  
+  (define (resta-racional x y)
+    (nuevo-racional (- (* (numerador x) (denominador y))
+                 (* (numerador y) (denominador x)))
+              (* (denominador x) (denominador y))))
+
+  (define (producto-racional x y)
+    (nuevo-racional (* (numerador x) (numerador y))
+              (* (denominador x) (denominador y))))
+
+  (define (division-racional x y)
+    (nuevo-racional (* (numerador x) (denominador y))
+              (* (denominador x) (numerador y))))
+
+  (define (iguales? x y)
+    (= (* (numerador x) (denominador y))
+       (* (numerador y) (denominador x))))
+#+end_src
+
+Hemos definido operaciones sobre numeros racionales en terminos de procedimientos selectores como /numerador, denominador/ y constructores como /nuevo-racional/.
+
+Para definir estos procedimientos necesitamos abstracciones de datos, para construir dichas abstracciones scheme nos provee del "pegamento" *pares* el cual se define con /cons/, y de los procedimientos primitivos /car/ y /cdr/ que permiten acceder al primer y segundo elemento del par respectivamente:
+
+#+begin_src scheme 
+  (define x (cons 1 2))
+  (car x)
+#+end_src
+
+#+RESULTS:
+: 1
+
+Ahora si podemos definir los procedimientos /nuevo-raciona, numerador, denominador/:
+
+#+begin_src scheme
+
+  (define nuevo-racional cons)
+  (define numerador car)
+  (define denominador cdr)
+  (define (suma-racional x y)
+    (nuevo-racional (+ (* (numerador x) (denominador y))
+                       (* (numerador y) (denominador x)))
+                    (* (denominador x) (denominador y))))
+
+  (define (resta-racional x y)
+    (nuevo-racional (- (* (numerador x) (denominador y))
+                       (* (numerador y) (denominador x)))
+                    (* (denominador x) (denominador y))))
+
+  (define (producto-racional x y)
+    (nuevo-racional (* (numerador x) (numerador y))
+                    (* (denominador x) (denominador y))))
+
+  (define (division-racional x y)
+    (nuevo-racional (* (numerador x) (denominador y))
+                    (* (denominador x) (numerador y))))
+
+  (define (iguales? x y)
+    (= (* (numerador x) (denominador y))
+       (* (numerador y) (denominador x))))
+
+  (iguales? (nuevo-racional 1 2) (nuevo-racional 1 2))
+#+end_src
+
+#+RESULTS:
+: #t
+
+** ¿Que se entiende por datos?
+
+Si prestamos atencion las abstracciones de datos pueden construirse en base a una serie de procedimientos y condiciones que dichos procedimientos deben cumplir. Por ejemplo, para *par* se tiene que cumplir que dados dos objetos x e y, si z es el par de ambos objetos, entonces (car z) devuelve x y (cdr z) devuelve y. Podemos realizar nuestra propia implementacion de pares de la siguiente manera:
+
+#+begin_src scheme 
+  (define (par x y)
+    (define (get m)
+      (cond ((= m 0) x)
+            ((= m 1) y)
+            (else (error "El argumento debe ser 0 o 1" m))))
+    get)
+  (define (car z) (z 0))
+  (define (cdr z) (z 1))
+
+  (define x (par 5 'holaMundo))
+  (x 1)
+  (cdr x)
+#+end_src
+
+#+RESULTS:
+: holaMundo
+
+Los procedimientos de arriba nos permite representar pares sin tener que utilizar datos, prestemos antencion que el valor retornado por /par/ es un procedimiento interno llamado get, el cual devuelve x o y si se le pasa como argumento 0 o 1.
+
+La representacion procedural pese a ser un poco obscura, demuestra que la habilidad de manipular procedimientos como si fuesen objetos automaticamente provee la habilidad de representar datos compuestos. Este estilo de programacion es a menudo llamada *pasaje de mensajes*
+
+#+begin_src scheme 
+  ;; Otra representacion de pares
+
+  (define (par x y)
+    (lambda (m) (m x y)))
+
+  (define (car z)
+    (z (lambda (x y) x)))
+
+
+  (define (cdr z)
+    (z (lambda (x y) y)))
+
+  (define dato (par 'hola 'mundo))
+  (cdr dato)
+#+end_src
+
+#+RESULTS:
+: mundo
