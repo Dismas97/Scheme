@@ -72,11 +72,11 @@ Ej x^2 + y^2:
   (define (suma-de-cuadrados x y)
     (+ (cuadrado x) (cuadrado y)))
 
-  (suma-de-cuadrados 3 4)
+  (suma-de-cuadrados 2 4)
 #+end_src
 
 #+RESULTS:
-: 25
+: 20
 
 *Orden Aplicativo vs Orden Normal*
 
