@@ -2,19 +2,8 @@
 #+AUTHOR: fran
 #+DESCRIPTION: Pasando a limpio lo que aprendí de distintas fuentes sobre SCHEME
 #+BIBLIOGRAPHY: Hal Abelson, Gerald Jay Sussman - Structure and Interpretation of Computer Programs.
-
-* TABLA DE CONTENIDOS :toc:
-- [[#construyendo-abstracciones-con-procedimientos][Construyendo Abstracciones con Procedimientos]]
-  - [[#elementos-de-la-programación][Elementos de la programación]]
-  - [[#procedimientos-y-los-procesos-que-generan][Procedimientos y los procesos que generan]]
-  - [[#formulando-abstracciones-con-procedimientos-de-orden-superior][Formulando Abstracciones con Procedimientos de Orden Superior]]
-- [[#construyendo-abstracciones-con-datos][Construyendo Abstracciones con Datos]]
-  - [[#abstracciones-de-datos][Abstracciones de Datos]]
-  - [[#datos-jerárquicos-y-la-propiedad-clausura][Datos jerárquicos y la propiedad Clausura]]
-- [[#algunas-implementaciones][Algunas implementaciones]]
-  - [[#lista][Lista]]
-  - [[#arbol-binario][Arbol Binario]]
-
+#+PROPERTY: header-args:scheme :session fran-scheme :exports both
+#+OPTIONS: num:nil
 * Construyendo Abstracciones con Procedimientos
 ** Elementos de la programación
 Todo lenguaje de programación debe proveer medios para la construcción de ideas complejas a partir de ideas simples, por ello todo lenguaje cuenta con tres mecanismos para lograrlo:
@@ -28,7 +17,7 @@ Todo lenguaje de programación debe proveer medios para la construcción de idea
 *** Expresiones
 Scheme (como todo dialecto lisp), utiliza notación polaca, expresiones primitivas como suma, números, etc. se pueden combinar para formar *combinaciones*, estas están formadas por una *lista de expresiones*, el elemento mas a la izquierda es el *operador*, el resto de elementos son sus *operandos*, cada operando puede ser a su vez otra combinación permitiendo a las combinaciones estar *anidadas*, en principio no hay limite de la profundidad del anidamiento:
 
-#+begin_src scheme
+#+begin_src scheme :eval no
                                           ; Expresiones primitivas
   1
   5
@@ -42,9 +31,12 @@ Scheme (como todo dialecto lisp), utiliza notación polaca, expresiones primitiv
      (* 1 1))
 #+end_src
 
+#+RESULTS:
+: 452
+
 Para la definición de *variables*, la función /define/ nos permite nombrar algo en el *entorno global*, se puede definir en distintos entornos.
 *** TODO Agregar otras definiciones de variables en diferentes entornos
-#+begin_src scheme
+#+begin_src scheme :session none
   (define variable "Hola mundo")
   variable
 #+end_src
@@ -58,15 +50,16 @@ Notar que (define x y) no es una combinación, ya que no aplica el operador a su
 Para definir procedimientos en Scheme, de nuevo utilizamos /define/. Ej potencia 2:
 
 #+begin_src scheme
-  (define (cuadrado x) (* x x))
-  (cuadrado 4)
+  (define (cuadrado x) (* x x))  
+  (define (cubo a) (* a a a))
+  (cuadrado 2)
 #+end_src
 
 #+RESULTS:
-: 16
+: 4
 
 La forma general para definir un procedimiento es:
-#+begin_src scheme
+#+begin_src scheme :eval no
   (define (<nombre> <parametros formales>)
     (<cuerpo>))
 #+end_src
@@ -76,7 +69,6 @@ El /nombre/ es un símbolo asociado a la definición del procedimiento en el ent
 Ej x^2 + y^2:
 
 #+begin_src scheme
-  (define (cuadrado x) (* x x))
   (define (suma-de-cuadrados x y)
     (+ (cuadrado x) (cuadrado y)))
 
@@ -96,7 +88,7 @@ El *orden normal*, primero expande toda la combinación hasta que solo quedan pr
 
 Ej:
 
-#+begin_src scheme
+#+begin_src scheme :eval no
                                           ; Expande
   (suma-de-cuadrados 3 4)
   (+ (cuadrado 3) (cuadrado 4))
@@ -110,7 +102,7 @@ Mientras que el *orden aplicativo* va evaluando las expresiones primitivas mas a
 
 Ej:
 
-#+begin_src scheme 
+#+begin_src scheme :eval no
   (suma-de-cuadrados 3 4)
   (+ (cuadrado 3) (cuadrado 4))
   (+ (* 3 3) (cuadrado 4))
@@ -126,7 +118,7 @@ Scheme utiliza el modo aplicativo por defecto principalmente por la eficiencia a
 
 Los *condicionales* en scheme se utilizan de la siguiente manera:
 
-#+begin_src scheme 
+#+begin_src scheme :eval no
   (cond (<p1> <e1>) (<p2> <e2>) ... )
 #+end_src
 
@@ -159,13 +151,13 @@ Scheme evalúa cada uno de los predicados en orden, retorna la expresión del pr
 
 También podemos usar *if*, la forma general de una expresión if es:
 
-#+begin_src scheme 
+#+begin_src scheme :eval no
   (if <predicado> <expresion_v> <expresion_f>)
 #+end_src
 
 Scheme cuenta con operaciones lógicas que permiten construir predicados compuestos:
 
-#+begin_src scheme 
+#+begin_src scheme :eval no
   (and ⟨e1⟩ . . . ⟨en⟩)
   (or ⟨e1⟩ . . . ⟨en⟩)
   (not ⟨e⟩)
@@ -195,11 +187,6 @@ No nos dice como obtener el numero /y/ que cumple dicha condición, podemos apro
 /xn+1 = xn - f(xn)/f'(en)/,
 
 #+begin_src scheme
-  (define (cuadrado x) (* x x))
-  (define (abs x)
-    (cond ((< x 0) (- x))
-          (else x)))
-
   (define (raiz-newton aprox x)
     (if (buena-aprox? aprox x)
         aprox
@@ -231,8 +218,6 @@ Sin embargo /if, buena-aprox?/, etc. no son locales a dicha definición, son lla
 Para solucionar el problema nombrado contamos con *subprocedimientos*, definiéndolos internamente en un bloque:
 
 #+begin_src scheme
-  (define (cuadrado x) (* x x))
-  (define (abs x) (cond ((< x 0) (- x)) (else x) ))
   (define (promedio x y) (/ (+ x y) 2))
 
   (define (raiz-newton aprox x)
@@ -251,6 +236,7 @@ Para solucionar el problema nombrado contamos con *subprocedimientos*, definién
 
 #+RESULTS:
 : 11916881/2733920
+
 
 Ahora /mejorar-aprox/ y /buena-aprox/ son subprocedimientos locales a raiz-newton, si mas adelante tenemos funciones de evaluación de aproximaciones diferentes no van a interferir en nuestro procedimiento.
 
@@ -274,7 +260,7 @@ Cuando realizamos recursión en Scheme, el proceso construye una cadena de *oper
 
 Este ej ejecutará de la sig manera:
 
-#+begin_src scheme 
+#+begin_src scheme :eval no
   (* 5 ( factorial 4))
 
   (* 5 (* 4 (factorial 3)))
@@ -298,7 +284,7 @@ Podemos hacerlo de forma iterativa, devolviendo la evaluación del siguiente pas
 
 De forma interactiva la ejecución es:
 
-#+begin_src scheme 
+#+begin_src scheme :eval no
   (factorial 1 1 5)
   (factorial 1 2 5)
   (factorial 2 3 5)
@@ -340,6 +326,7 @@ Otro ejemplo de árbol recursivo y una variante iterativa
 #+RESULTS:
 : 10771211
 
+
 #+begin_src scheme
   (define (f-iter n)
     (define (f-iter-aux n i a b c)
@@ -374,52 +361,44 @@ El poder de la notación sigma es que permite a los matemáticos tratar con el c
 
 De manera similar como diseñadores, nos gustaría contar con un lenguaje lo suficientemente poderoso que nos permita escribir procedimientos que traten la idea de sumatoria antes de procedimientos que calculan sumas particulares. En Scheme esto se puede hacer fácilmente:
 
-#+begin_src scheme 
+#+begin_src scheme
   (define (sumatoria fun-f a b fun-sig)
     (if (> a b)
         0
         (+ (fun-f a)
            (sumatoria fun-f (fun-sig a) b fun-sig))))
 
-                                          ; Veamos la sumatoria de todos los numeros pares entre 0 100
   (define (incrementar-dos a) (+ a 2))
+  (define (incrementar-uno a) (+ a 1))
 
   (sumatoria + 0 100 incrementar-dos)
-
-                                          ; Ahora la sumatoria de los cubos entre 0 y 100
-
-  (define (incrementar-uno a) (+ a 1))
-  (define (cubo a) (* a a a))
-
   (sumatoria cubo 0 100 incrementar-uno)
+#+end_src
 
-                                          ; Aproximemos pi
+#+RESULTS:
+: 25502500
+
+Aproximemos pi
+#+begin_src scheme 
   (define (pi-fun x) (/ 1.0 (* x (+ x 2))))
   (define (pi-sig x) (+ x 4))
 
   (* (sumatoria pi-fun 1 1000 pi-sig) 8)
-
 #+end_src
 
 #+RESULTS:
 : 3.139592655589783
 
+
 *** Procedimientos usando /lambda/
 En vez de estar definiendo uno a uno procedimientos como /incrementar-x, pi-sig, pi-fun, etc./ podemos describir lo que queremos utilizando la forma especial *lambda*:
 
 #+begin_src scheme
-  (define (sumatoria fun-f a b fun-sig)
-    (if (> a b)
-        0
-        (+ (fun-f a) (sumatoria fun-f (fun-sig a) b fun-sig))))
-
   ;; Veamos la sumatoria de cubos de los numeros pares entre 0 100
-
-  (sumatoria
-   (lambda (x) (* x x x))
-   0
-   100
-   (lambda (x) (+ x 2)))
+  (sumatoria (lambda (x) (* x x x))
+             0
+             100
+             (lambda (x) (+ x 2)))
 
 #+end_src
 
@@ -428,29 +407,32 @@ En vez de estar definiendo uno a uno procedimientos como /incrementar-x, pi-sig,
 
 En general lambda es utilizado para crear procedimientos de la misma forma que define, con la excepción que no se lo asocia a ningún nombre del entorno.
 
-#+begin_src scheme 
+#+begin_src scheme :eval no
   (lambda (<parametros-formales>) (<cuerpo>))
 #+end_src
 
+#+RESULTS:
+: #<procedure 55ccb24c1f38 at <unknown port>:9:23 (<parametros-formales>)>
+
 Otro uso de lambda esta en crear variables locales.
-#+begin_src scheme 
+#+begin_src scheme :eval no
   (let ((<var1> <exp1>) .. (<varn> <expn>)) (<cuerpo>))
 #+end_src
 
 La primer parte de la expresión *let* es una lista de pares /nombre-expresion/. Cuando let es evaluado, cada nombre es asociado con el valor de la expresión correspondiente. El cuerpo de let es evaluado con dichos nombres asociados como variables locales. La expresión let es interpretada como una alternativa sintáctica a:
 
-#+begin_src scheme 
+#+begin_src scheme :eval no
   ((lambda (<var1> .. <varn>) <cuerpo>) <exp1> .. <expn>)
 #+end_src
 
 No se requieren de nuevos mecanismo en el interprete para proveer variables locales. Veamos un ejemplo
 
-#+begin_src scheme
+#+begin_src scheme :session none
   (define x 5)
 
-  (+
-   (let ((x 3)) (* x 3)) ; aca x es local al let, por lo que x=3, let evalua 3*3
-   x) ;aca el x es el definido arriba, 5, 5 + let = 5+9 = 14
+  (+ (let ((x 3))
+       (* x 3)) ; aca x es local al let, por lo que x=3, let evalua 3*3
+     x) ;aca el x es el definido arriba, 5, 5 + let = 5+9 = 14
 #+end_src
 
 #+RESULTS:
@@ -464,20 +446,18 @@ f'(x) = (f(x+dx) - f(x)/dx)
 Podemos definir un procedimiento que nos devuelva la derivada de una función.
 
 #+begin_src scheme
-
   (define dx 0.000000001) ; dx -> 0
   (define (derivada fun)
     (lambda (x) (/ (- (fun (+ x dx)) (fun x)) dx)))
 
                                           ; como derivada retorna procedimiento (generado por lambda), podemos aplicar su resultado a un valor
 
-  (define (cuadrado x) (* x x))
 
-  ((derivada cuadrado) 10) ; derivada de x2 es 2x, 2(10) = 20
+  ((derivada cuadrado) 20) ; derivada de x2 es 2x, 2(10) = 20
 #+end_src
 
 #+RESULTS:
-: 20.00000165480742
+: 40.00003173132427
 
 * Construyendo Abstracciones con Datos
 ** Abstracciones de Datos
@@ -517,11 +497,15 @@ Podemos expresar las operaciones como:
        (* (numerador y) (denominador x))))
 #+end_src
 
+#+RESULTS:
+: #<unspecified>
+
+
 Hemos definido operaciones sobre números racionales en términos de procedimientos selectores como /numerador, denominador/ y constructores como /nuevo-racional/.
 
 Para definir estos procedimientos necesitamos abstracciones de datos, para construir dichas abstracciones scheme nos provee del "pegamento" *pares* el cual se define con /cons/, y de los procedimientos primitivos /car/ y /cdr/ que permiten acceder al primer y segundo elemento del par respectivamente:
 
-#+begin_src scheme 
+#+begin_src scheme :session none
   (define x (cons 1 2))
   (car x)
 #+end_src
@@ -532,31 +516,9 @@ Para definir estos procedimientos necesitamos abstracciones de datos, para const
 Ahora si podemos definir los procedimientos /nuevo-raciona, numerador, denominador/:
 
 #+begin_src scheme
-
   (define nuevo-racional cons)
   (define numerador car)
   (define denominador cdr)
-  (define (suma-racional x y)
-    (nuevo-racional (+ (* (numerador x) (denominador y))
-                       (* (numerador y) (denominador x)))
-                    (* (denominador x) (denominador y))))
-
-  (define (resta-racional x y)
-    (nuevo-racional (- (* (numerador x) (denominador y))
-                       (* (numerador y) (denominador x)))
-                    (* (denominador x) (denominador y))))
-
-  (define (producto-racional x y)
-    (nuevo-racional (* (numerador x) (numerador y))
-                    (* (denominador x) (denominador y))))
-
-  (define (division-racional x y)
-    (nuevo-racional (* (numerador x) (denominador y))
-                    (* (denominador x) (numerador y))))
-
-  (define (iguales? x y)
-    (= (* (numerador x) (denominador y))
-       (* (numerador y) (denominador x))))
 
   (iguales? (nuevo-racional 1 2) (nuevo-racional 1 2))
 #+end_src
@@ -607,8 +569,6 @@ La representación procedimental pese a ser un poco obscura, demuestra que la ha
   (cdr dato)
 #+end_src
 
-
-
 #+RESULTS:
 : mundo
 
@@ -620,7 +580,7 @@ La habilidad de crear pares cuyos elementos sean otros pares es la esencia de la
 *** Representando secuencias
 Una de las estructuras mas útiles que podemos construir con pares es una /secuencia/, una colección ordenada de objetos de datos. Podemos representar una secuencia de muchas formas, la mas directa como un encadenamiento de pares, dicha representación se le llama /lista/:
 
-#+begin_src scheme 
+#+begin_src scheme :session none
   (cons 1
         (cons 2
               (cons 3
@@ -639,58 +599,45 @@ Scheme provee de primitivas para listas, /list/. Podemos utilizar encadenamiento
 #+end_src
 
 #+RESULTS:
-: 3
 
 Dado que dicho encadenamiento de funciones es algo tedioso de escribir, lisp cuenta con abreviaciones, dichas abreviaciones siempre empiezan y terminan en *c* y *r*, cada *a* y *d* en el medio representa una operación car o cdr.
 
 #+begin_src scheme 
-  (define mi-lista (list 1 2 3 4))
-  (cadddr mi-lista)
+  (caddr mi-lista)
 #+end_src
 
 #+RESULTS:
-: 4
+: 3
 
 *** Operaciones de listas
 Scheme cuenta con varios procedimientos para manipular listas, por ejemplo /list-ref/ nos devuelve el enésimo elemento de una lista o /length/ que nos devuelve la cantidad de elementos.
-#+begin_src scheme 
-  (list-ref (list 1 2 3 4) 2)
-  (length (list 1 2 3 4 5 6 7 8))
+#+begin_src scheme
+  (length (list 1 2 3 4 5 6 7 8)) ; 8
+  (list-ref mi-lista 2)
 #+end_src
 
 #+RESULTS:
-: 8
+: 3
+
 
 El procedimiento /append/ nos permite unir listas
 #+begin_src scheme 
-(append '(123 456 789) '(1 2 3) '(a b c))
+  (append mi-lista '(a b c) mi-lista)
 #+end_src
 
 #+RESULTS:
-| 123 | 456 | 789 | 1 | 2 | 3 | a | b | c |
+| 1 | 2 | 3 | 4 | a | b | c | 1 | 2 | 3 | 4 |
 
 Una operación extremadamente útil para listas es aplicar algún tipo de transformación a cada elemento de la lista
-
-
-
-
-
-
-
-
-
-
-
-
 
 * Algunas implementaciones
 ** Lista
 
-#+begin_src scheme
-  (define (lista x . y)
+#+begin_src scheme :session none
+  (define (lista . x)
     (if (null? x)
         '()
-        (cons x y)))
+        (cons (car x) (apply lista (cdr x)))))
 
   (define (enesimo lista x)
     (if (null? lista)
@@ -726,6 +673,8 @@ Una operación extremadamente útil para listas es aplicar algún tipo de transf
 
 ** Arbol Binario
 
-#+begin_src scheme 
+#+begin_src scheme :session none
   (define (arbol-binario x)())
 #+end_src
+
+#+RESULTS:
